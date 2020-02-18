@@ -218,25 +218,9 @@ function! s:StatusLine() abort
   let l:enc = ' %{&fenc != "" ? &fenc : &enc} | %{&bomb ? ",BOM " : ""}'
   let l:ff = '%{&ff} %*'
   let l:pct = '%#Eleline9# %P %*'
-  return l:prefix.l:tot.'%<'.l:fsize.l:common
+  return l:prefix.'%<'.l:fsize.l:common
         \ .'%='.l:m_r_f.l:pos.l:enc.l:ff.l:pct
 endfunction
-
-let s:colors = {
-            \   140 : '#af87d7', 149 : '#99cc66', 160 : '#d70000',
-            \   171 : '#d75fd7', 178 : '#ffbb7d', 184 : '#ffe920',
-            \   208 : '#ff8700', 232 : '#333300', 197 : '#cc0033',
-            \   214 : '#ffff66', 124 : '#af3a03', 172 : '#b57614',
-            \   32  : '#3a81c3', 89  : '#6c3163',
-            \
-            \   235 : '#262626', 236 : '#303030', 237 : '#3a3a3a',
-            \   238 : '#444444', 239 : '#4e4e4e', 240 : '#585858',
-            \   241 : '#606060', 242 : '#666666', 243 : '#767676',
-            \   244 : '#808080', 245 : '#8a8a8a', 246 : '#949494',
-            \   247 : '#9e9e9e', 248 : '#a8a8a8', 249 : '#b2b2b2',
-            \   250 : '#bcbcbc', 251 : '#c6c6c6', 252 : '#d0d0d0',
-            \   253 : '#dadada', 254 : '#e4e4e4', 255 : '#eeeeee',
-            \ }
 
 function! s:extract(group, what, ...) abort
   if a:0 == 1
@@ -246,21 +230,7 @@ function! s:extract(group, what, ...) abort
   endif
 endfunction
 
-if !exists('g:eleline_background')
-  let s:normal_bg = s:extract('Normal', 'bg', 'cterm')
-  if s:normal_bg >= 233 && s:normal_bg <= 243
-    let s:bg = s:normal_bg
-  else
-    let s:bg = 235
-  endif
-else
-  let s:bg = g:eleline_background
-endif
-
-" Don't change in gui mode
-if has('termguicolors') && &termguicolors
-  let s:bg = 235
-endif
+let s:bg = 16
 
 function! s:hi(group, dark, light, ...) abort
   let [fg, bg] = &background ==# 'dark' ? a:dark : a:light
@@ -269,52 +239,47 @@ function! s:hi(group, dark, light, ...) abort
     if &background ==# 'light'
       let reverse = s:extract('StatusLine', 'reverse')
       let ctermbg = s:extract('StatusLine', reverse ? 'fg' : 'bg', 'cterm')
-      let ctermbg = empty(ctermbg) ? 237 : ctermbg
-      let guibg = s:extract('StatusLine', reverse ? 'fg': 'bg' , 'gui')
-      let guibg = empty(guibg) ? s:colors[237] : guibg
+      let ctermbg = empty(ctermbg) ? 0 : ctermbg
     else
       let ctermbg = bg
-      let guibg = s:colors[bg]
     endif
   else
     let ctermbg = bg
-    let guibg = s:colors[bg]
   endif
   execute printf('hi %s ctermfg=%d guifg=%s ctermbg=%d guibg=%s',
-                \ a:group, fg, s:colors[fg], ctermbg, guibg)
+                \ a:group, fg, 0, ctermbg, 1)
   if a:0 == 1
     execute printf('hi %s cterm=%s gui=%s', a:group, a:1, a:1)
   endif
 endfunction
 
 function! s:hi_statusline() abort
-  call s:hi('ElelineBufnrWinnr' , [232 , 178]    , [89 , '']  )
-  call s:hi('ElelineTotalBuf'   , [178 , s:bg+8] , [240 , ''] )
-  call s:hi('ElelinePaste'      , [232 , 178]    , [232 , 178]    , 'bold')
-  call s:hi('ElelineFsize'      , [250 , s:bg+6] , [235 , ''] )
-  call s:hi('ElelineCurFname'   , [171 , s:bg+4] , [171 , '']     , 'bold' )
-  call s:hi('ElelineGitBranch'  , [184 , s:bg+2] , [89  , '']     , 'bold' )
-  call s:hi('ElelineGitStatus'  , [208 , s:bg+2] , [89  , ''])
-  call s:hi('ElelineError'      , [197 , s:bg+2] , [197 , ''])
-  call s:hi('ElelineWarning'    , [214 , s:bg+2] , [214 , ''])
-  call s:hi('ElelineVista'      , [149 , s:bg+2] , [149 , ''])
+  call s:hi('ElelineBufnrWinnr' , [8 , 0]    , [89 , '']  )
+  call s:hi('ElelinePaste'      , [11 , 12]    , [232 , 178]    , 'bold')
+  call s:hi('ElelineFsize'      , [8 , 0] , [235 , ''] )
+  call s:hi('ElelineCurFname'   , [3 , 0] , [171 , '']    )
+  call s:hi('ElelineGitBranch'  , [184 , 0] , [89  , '']     , 'bold' )
+  call s:hi('ElelineGitStatus'  , [208 , 0] , [89  , ''])
+  call s:hi('ElelineError'      , [197 , 0] , [197 , ''])
+  call s:hi('ElelineWarning'    , [214 , 0] , [214 , ''])
+  call s:hi('ElelineVista'      , [149 , 0] , [149 , ''])
 
   if &background ==# 'dark'
-    call s:hi('StatusLine' , [140 , s:bg+2], [140, ''] , 'none')
+    call s:hi('StatusLine' , [140 , 0], [140, ''] , 'none')
   endif
 
-  call s:hi('Eleline7'      , [249 , s:bg+3], [237, ''] )
-  call s:hi('Eleline8'      , [250 , s:bg+4], [238, ''] )
-  call s:hi('Eleline9'      , [251 , s:bg+5], [239, ''] )
+  call s:hi('Eleline7'      , [8 , 0], [237, ''] )
+  call s:hi('Eleline8'      , [8 , 0], [238, ''] )
+  call s:hi('Eleline9'      , [8 , 0], [239, ''] )
 endfunction
 
 function! s:InsertStatuslineColor(mode) abort
   if a:mode ==# 'i'
-    call s:hi('ElelineBufnrWinnr' , [251, s:bg+8] , [251, s:bg+8])
+    call s:hi('ElelineBufnrWinnr' , [15, 9] , [251, s:bg+8])
   elseif a:mode ==# 'r'
-    call s:hi('ElelineBufnrWinnr' , [232, 160], [232, 160])
+    call s:hi('ElelineBufnrWinnr' , [232, 11], [232, 160])
   else
-    call s:hi('ElelineBufnrWinnr' , [232, 178], [89, ''])
+    call s:hi('ElelineBufnrWinnr' , [8, 0], [89, ''])
   endif
 endfunction
 
@@ -343,7 +308,7 @@ augroup eleline
   autocmd!
   autocmd User GitGutter,Startified,LanguageClientStarted call s:SetStatusLine()
   " Change colors for insert mode
-  autocmd InsertLeave * call s:hi('ElelineBufnrWinnr', [232, 178], [89, ''])
+  autocmd InsertLeave * call s:hi('ElelineBufnrWinnr', [8, 0], [89, ''])
   autocmd InsertEnter,InsertChange * call s:InsertStatuslineColor(v:insertmode)
   autocmd BufWinEnter,ShellCmdPost,BufWritePost * call s:SetStatusLine()
   autocmd FileChangedShellPost,ColorScheme * call s:SetStatusLine()
